@@ -3,3 +3,5 @@ intervalset.py , an initial source on PyPi, written by someone else, has somethi
 
 
 To be specific, this source does something wrong in intervalset union. Sadly, I don't find its repo on Github, so I upload this repo for memory.
+
+Then I found another bug in the __or__ operator. Already fixed by myself.
