@@ -7,7 +7,6 @@ __version__ = "0.1.5"
 
 _InternalInterval = collections.namedtuple("Interval", ["begin", "end"])
 
-
 class Interval(_InternalInterval):
     """Represent an immutable interval, with beginning and ending value.
 
@@ -49,12 +48,12 @@ class Interval(_InternalInterval):
 
     def __and__(self, other):
         """Return the intersection of this interval and another.
-
+        
         A zero-length intersection
 
         When there is no intersection, it returns EMPTY_INTERVAl."""
         global EMPTY_INTERVAL
-        if not self or not other or self.end <= other.begin or other.end <= self.begin:
+        if not self or not other or self.end < other.begin or other.end < self.begin:
             return EMPTY_INTERVAL
         elif self.begin >= other.begin and self.end <= other.end:
             # This interval is completely within the other.
@@ -77,8 +76,7 @@ class Interval(_InternalInterval):
     def __or__(self, other):
         """Unify two overlapping intervals. When called with non-overlapping intervals, raises ValueError."""
         if not self or not other or self.end < other.begin or other.end < self.begin:
-            raise ValueError(
-                "Cannot unify non-overlapping intervals. (Use interval sets for that.)")
+            raise ValueError("Cannot unify non-overlapping intervals. (Use interval sets for that.)")
         elif self.begin >= other.begin and self.end <= other.end:
             # This interval is completely within the other.
             return other
@@ -99,8 +97,7 @@ class Interval(_InternalInterval):
 
     def __contains__(self, other):
         if not self:
-            # An empty interval does not contain anything, even another empty interval.
-            return False
+            return False  # An empty interval does not contain anything, even another empty interval.
         elif not other:
             return False  # This is an interesting question... is an empty interval inside a non-empty one?
         else:
@@ -108,7 +105,7 @@ class Interval(_InternalInterval):
 
     def is_before_than(self, other):
         """Tells if this interval is completely before the other. (Empty intervals are before everything.)"""
-        return (self is EMPTY_INTERVAL) or (other is EMPTY_INTERVAL) or self.end < other.begin
+        return (self is EMPTY_INTERVAL) or (other is EMPTY_INTERVAL) or  self.end < other.begin
 
     def is_after_than(self, other):
         """Tells if this interval is completely after the other. (Empty intervals are before everything.)"""
@@ -123,8 +120,7 @@ class Interval(_InternalInterval):
         if self:
             if isinstance(self.begin, datetime.datetime):
                 w = 8
-                res = str(self.begin.date()) + " " + \
-                    str(self.begin.time())[:w] + "->"
+                res = str(self.begin.date()) + " " + str(self.begin.time())[:w] + "->"
                 if self.begin.date() != self.end.date():
                         res += str(self.end.date())
                 res += str(self.end.time())[:w]
@@ -134,8 +130,7 @@ class Interval(_InternalInterval):
         else:
             return "%s(<empty>)" % name
 
-
-EMPTY_INTERVAL = None  # Define it so that __new__ can check it.
+EMPTY_INTERVAL = None # Define it so that __new__ can check it.
 EMPTY_INTERVAL = Interval(None, None)
 
 
@@ -160,7 +155,6 @@ class IntervalSet(object):
     * "in" - containment for a set
 
     """
-
     def __init__(self, *items):
         self._fill_items(items)
         self._hash = None
@@ -184,8 +178,7 @@ class IntervalSet(object):
                     # Next item overlaps with the current item. Unify them.
                     i1 = i1 | i2
                 else:
-                    # This should never happen when items are sorted.
-                    raise Exception("Internal error")
+                    raise Exception("Internal error") # This should never happen when items are sorted.
             # Add last remaining item
             if i1:
                 _items.append(i1)
@@ -343,6 +336,7 @@ class IntervalSet(object):
         # Add the last item, if available.
         if b1 and e1 and b1 < e1:
             new_items.append(Interval(b1, e1))
+        new_items += list(it1)
 
         return IntervalSet(*new_items)
 
@@ -395,7 +389,7 @@ class IntervalSet(object):
                     last_date = None
                     for item in self:
                         sitem = "["
-                        if not last_date or last_date != item.begin.date():
+                        if not last_date or last_date!= item.begin.date():
                             last_date = item.begin.date()
                             sitem += str(last_date) + " "
                         sitem += str(item.begin.time())[:w] + " -> "
@@ -405,10 +399,12 @@ class IntervalSet(object):
                         sitem += str(item.end.time())[:w] + "]"
                         parts.append(sitem)
                 else:
-                    parts = ["[%s -> %s]" %
-                             (item.begin, item.end) for item in self]
+                    parts = ["[%s -> %s]" % (item.begin, item.end) for item in self]
                 return "%s(%s)" % (name, ",".join(parts))
             else:
-                return "%s(%d items between %s and %s)" % (name, len(self), self._items[0], self._items[-1])
+                return "%s(%d items between %s and %s)" % (name, len(self), self._items[0], self._items[-1] )
         else:
-            return "%s(<empty>)" % name
+            return  "%s(<empty>)" % name
+
+
+
